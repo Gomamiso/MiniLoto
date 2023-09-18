@@ -2,7 +2,7 @@ goto load_html
 goto get_test_data
 
 :load_html
-python load_html.py
+python load_html.py -o test_list.csv
 goto exit
 
 :get_test_data

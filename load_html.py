@@ -54,7 +54,7 @@ def SaveRawHTML(args, browser):
 def SaveTableData(args, browser):
 	print('Start setting page')
 
-	ret = SetupPage(browser)
+	ret = SetupPage(args, browser)
 	if ret == False:
 		return
 	
@@ -93,7 +93,7 @@ def SaveTableData(args, browser):
 	return True
 	
 #--------------------------
-def AnalyzeTable(table_list):
+def AnalyzeTableV1(table_list):
 	output_matrix = []
 	for ix, table in enumerate(table_list):
 		output_list = []
@@ -147,7 +147,7 @@ def AnalyzeTableV2(table_list):
 	return output_matrix
 
 #--------------------------
-def SetupPage(browser):
+def SetupPage(args, browser):
 	try:
 		# ラジオボタンを選択してONにする
 		radio_button = browser.find_element_by_css_selector('input[name="jyoken"][value="2"]')
@@ -167,13 +167,14 @@ def SetupPage(browser):
 		# Selectインスタンスを作成
 		select = Select(select_element)
 		# 値が'100'のオプションを選択
-		select.select_by_value('100')
+		select.select_by_value(str(args.size))
 
 		time.sleep(1)
 
 		# 数値をテキストボックスに入力
 		text_box = browser.find_element_by_id('round')
-		text_box.send_keys(args.before)  # ここで12345という数値を入力しています
+		print('begin: %d' % args.begin)
+		text_box.send_keys(args.begin + args.size - 1)  # ここで12345という数値を入力しています
 
 		time.sleep(1)
 
@@ -203,9 +204,19 @@ if __name__ == "__main__":
 	parser = argparse.ArgumentParser(description='get record from mini loto result')
 	parser.add_argument('-o', '--output', help="Ouput file name", default=None)
 	parser.add_argument('-v', '--verbose', help="Use verbose mode", action='store_true')
-	parser.add_argument('-b', '--before', help="Before serial number", default='200')
+	parser.add_argument('-b', '--begin', help="Begin of serial number", type=int, default=1)
+	parser.add_argument('-s', '--size', help="Size of serial data", type=int, default=100)
 	parser.add_argument('-r', '--raw', help="Raw table's file name", default=None)
 	args = parser.parse_args()
+	
+	error = 0
+	if (args.size % 10) != 0 or (args.size / 10) < 1 or (args.size / 10) > 10:
+		print('ERROR: size %d == n * 10 and n <= 10' % (args.size))
+		error += 1
+	if args.begin < 1:
+		print('ERROR: begin %d' % (args.begin))
+		error += 1
 
-	Main(args)
+	if error == 0:
+		Main(args)
 	
